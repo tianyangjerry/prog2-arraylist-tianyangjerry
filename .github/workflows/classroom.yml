@@ -1,0 +1,61 @@
+name: Autograding Tests
+'on':
+- push
+- workflow_dispatch
+- repository_dispatch
+permissions:
+  checks: write
+  actions: read
+  contents: read
+jobs:
+  run-autograding-tests:
+    runs-on: ubuntu-latest
+    if: github.actor != 'github-classroom[bot]'
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    - name: Test adding orders
+      id: test-adding-orders
+      uses: education/autograding-command-grader@v1
+      with:
+        test-name: Test adding orders
+        setup-command: mvn compile
+        command: mvn -Dtest=CollectionTests#testOrderProcessing test
+        timeout: 10
+        max-score: 6
+    - name: Test searching user orders
+      id: test-searching-user-orders
+      uses: education/autograding-command-grader@v1
+      with:
+        test-name: Test searching user orders
+        setup-command: mvn compile
+        command: mvn -Dtest=CollectionTests#testSearchingUserOrders test
+        timeout: 10
+        max-score: 3
+    - name: Test displaying all user orders
+      id: test-displaying-all-user-orders
+      uses: education/autograding-command-grader@v1
+      with:
+        test-name: Test displaying all user orders
+        setup-command: mvn compile
+        command: mvn -Dtest=CollectionTests#testDisplayingAllUserOrders test
+        timeout: 10
+        max-score: 2
+    - name: Test removing user orders
+      id: test-removing-user-orders
+      uses: education/autograding-command-grader@v1
+      with:
+        test-name: Test removing user orders
+        setup-command: mvn compile
+        command: mvn -Dtest=CollectionTests#testRemovingOrders test
+        timeout: 10
+        max-score: 4
+    - name: Autograding Reporter
+      uses: education/autograding-grading-reporter@v1
+      env:
+        TEST-ADDING-ORDERS_RESULTS: "${{steps.test-adding-orders.outputs.result}}"
+        TEST-SEARCHING-USER-ORDERS_RESULTS: "${{steps.test-searching-user-orders.outputs.result}}"
+        TEST-DISPLAYING-ALL-USER-ORDERS_RESULTS: "${{steps.test-displaying-all-user-orders.outputs.result}}"
+        TEST-REMOVING-USER-ORDERS_RESULTS: "${{steps.test-removing-user-orders.outputs.result}}"
+      with:
+        runners: test-adding-orders,test-searching-user-orders,test-displaying-all-user-orders,test-removing-user-orders
